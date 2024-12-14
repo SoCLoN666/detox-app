@@ -1,48 +1,35 @@
-name: E2E (iOS)
-
+name: Detox e2e tests
 on:
   push:
     branches: [main, master, testBranch]
   pull_request:
-    branches: [master, main, testBranch]
-
+    branches: [main, master, testBranch]
 jobs:
-  build:
-    name: E2E (iOS)
-    runs-on: macOS-latest
-
+  test:
+    timeout-minutes: 60
+    runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v1
-
-      - name: Install Node
-        uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "18"
-
-      - name: Install Yarn Dependencies
-        run: yarn install
-
-      - name: Install Pod Dependencies
-        run: cd ./ios && pod install && cd ..
-
-      - name: Install Detox Dependencies
+      - name: Install dependencies
+        run: npm install -g yarn && yarn
+      - name: Install Detox CLI
+        run: npm install -g detox-cli
+      - name: Install required iOS simulators
         run: |
-          brew tap wix/brew
-          brew install applesimutils
-
-      - name: Run Detox Build
+          sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+          sudo xcodebuild -runFirstLaunch
+          # Install the required simulators (you can adjust this if you need different devices)
+          sudo xcodebuild -device "iPhone 13" -destination 'platform=iOS Simulator,OS=latest,name=iPhone 13'
+      - name: Build iOS App
         run: yarn test:build
-
-      - name: Run Detox Test(s)
-        run: |
-          yarn start &
-
-          METRO_BUNDLER_PID=$!
-
-          yarn test:e2e
-
-          DETOX_EXIT_CODE=$?
-
-          kill $METRO_BUNDLER_PID
-
-          exit $DETOX_EXIT_CODE
+      - name: Run Detox tests
+        run: yarn test:e2e
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: detox-report
+          path: reports/
+          retention-days: 30
