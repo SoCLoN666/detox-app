@@ -39,14 +39,14 @@ jobs:
             echo "Xcode Command Line Tools already installed."
           fi
 
-      - name: Install and Boot iPhone 13 Simulator
+      - name: Install and Boot iPhone 15 Simulator
         run: |
           # Accept Xcode License (required in CI/CD environments)
           sudo xcodebuild -license accept
 
-          # Install simulators (e.g., iPhone 13)
+          # Install simulators (e.g., iPhone 15)
           xcrun simctl list devices
-          xcrun simctl boot "iPhone 13"
+          xcrun simctl boot "iPhone 15"
 
           # Start the simulator (optional, you can also boot the simulator without this)
           open -a Simulator
