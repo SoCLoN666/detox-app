@@ -109,18 +109,18 @@ jobs:
             echo "Xcode Command Line Tools already installed."
           fi
 
-      - name: Install and Boot iPhone 13 Simulator
+      - name: Install and Boot iPhone 15 Simulator
         run: |
           # Accept Xcode License (required in CI/CD environments)
           sudo xcodebuild -license accept
 
-          # Install simulators (e.g., iPhone 13)
+          # Install simulators (e.g., iPhone 15)
           xcrun simctl list devices
-          if ! xcrun simctl list | grep -q "iPhone 13.*Booted"; then
-            echo "Booting iPhone 13..."
-            xcrun simctl boot "iPhone 13"
+          if ! xcrun simctl list | grep -q "iPhone 15.*Booted"; then
+            echo "Booting iPhone 15..."
+            xcrun simctl boot "iPhone 15"
           else
-            echo "iPhone 13 simulator is already booted."
+            echo "iPhone 15 simulator is already booted."
           fi
 
       - name: Run Detox Build
