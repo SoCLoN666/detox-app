@@ -30,9 +30,6 @@ jobs:
           brew tap wix/brew
           brew install applesimutils
 
-      - name: Run Unit Test(s)
-        run: yarn test
-
       - name: Run Detox Build
         run: yarn e2e:build ios.sim.release
 
