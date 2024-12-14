@@ -15,14 +15,18 @@ jobs:
           node-version: lts/*
       - name: Install dependencies
         run: npm install -g yarn && yarn
-      - name: Install dependencies for iOS
+      - name: Install applesimutils manually
         run: |
-          brew install applesimutils
-          npm install -g detox-cli
+          git clone https://github.com/wix/AppleSimulatorUtils.git
+          cd AppleSimulatorUtils
+          ./scripts/build.sh
+          cd ..
+      - name: Install Detox CLI
+        run: npm install -g detox-cli
       - name: Build iOS App
         run: npx detox build --configuration ios.sim.release
-      - name: Run detox tests
-        run: yarn test:e2e
+      - name: Run Detox tests
+        run: npx detox test --configuration ios.sim.release
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
