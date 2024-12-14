@@ -1,35 +1,49 @@
-name: Detox e2e tests
+name: E2E (iOS)
+
 on:
-  push:
-    branches: [main, master, testBranch]
   pull_request:
-    branches: [main, master, testBranch]
+    branches: [master]
+
 jobs:
-  test:
-    timeout-minutes: 60
-    runs-on: macos-latest
+  build:
+    name: E2E (iOS)
+    runs-on: macOS-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v1
+
+      - name: Install Node
+        uses: actions/setup-node@v1
         with:
-          node-version: lts/*
-      - name: Install dependencies
-        run: npm install -g yarn && yarn
-      - name: Install applesimutils manually
+          node-version: "12"
+
+      - name: Install Yarn Dependencies
+        run: yarn install
+
+      - name: Install Pod Dependencies
+        run: cd ./ios && pod install && cd ..
+
+      - name: Install Detox Dependencies
         run: |
-          git clone https://github.com/wix/AppleSimulatorUtils.git
-          cd AppleSimulatorUtils
-          ./scripts/build.sh
-          cd ..
-      - name: Install Detox CLI
-        run: npm install -g detox-cli
-      - name: Build iOS App
-        run: npx detox build --configuration ios.sim.release
-      - name: Run Detox tests
-        run: npx detox test --configuration ios.sim.release
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
+          brew tap wix/brew
+          brew install applesimutils
+
+      - name: Run Unit Test(s)
+        run: yarn test
+
+      - name: Run Detox Build
+        run: yarn e2e:build ios.sim.release
+
+      - name: Run Detox Test(s)
+        run: |
+          yarn start &
+
+          METRO_BUNDLER_PID=$!
+
+          yarn test:e2e
+
+          DETOX_EXIT_CODE=$?
+
+kill $METRO_BUNDLER_PID
+
+exit $DETOX_EXIT_CODE
