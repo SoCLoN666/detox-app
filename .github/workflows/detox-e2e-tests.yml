@@ -7,7 +7,7 @@ on:
 jobs:
   test:
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,9 +19,8 @@ jobs:
         run: |
           brew install applesimutils
           npm install -g detox-cli
-      # Step 5: Build the iOS app
       - name: Build iOS App
-        run: npx detox build --configuration ios.sim.releas
+        run: npx detox build --configuration ios.sim.release
       - name: Run detox tests
         run: yarn test:e2e
       - uses: actions/upload-artifact@v4
