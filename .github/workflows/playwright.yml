@@ -1,0 +1,32 @@
+name: Detox e2e tests
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install -g yarn && yarn
+      - name: Install dependencies for iOS
+        run: |
+          brew install applesimutils
+          npm install -g detox-cli
+      # Step 5: Build the iOS app
+      - name: Build iOS App
+        run: npx detox build --configuration ios.sim.releas
+      - name: Run detox tests
+        run: yarn test:e2e
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
