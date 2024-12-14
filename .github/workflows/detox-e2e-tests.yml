@@ -30,11 +30,17 @@ jobs:
           brew tap wix/brew
           brew install applesimutils
 
+      - name: Check and Install Xcode Command Line Tools
+        run: |
+          if ! xcode-select -p > /dev/null; then
+            echo "Installing Xcode Command Line Tools..."
+            xcode-select --install
+          else
+            echo "Xcode Command Line Tools already installed."
+          fi
+
       - name: Install and Boot iOS Simulator
         run: |
-          # Install Xcode Command Line Tools (if not already installed)
-          xcode-select --install
-
           # Accept Xcode License (required in CI/CD environments)
           sudo xcodebuild -license accept
 
