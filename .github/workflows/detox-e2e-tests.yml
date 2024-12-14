@@ -4,32 +4,53 @@ on:
     branches: [main, master, testBranch]
   pull_request:
     branches: [main, master, testBranch]
+
 jobs:
-  test:
-    timeout-minutes: 60
+  build:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: lts/*
       - name: Install dependencies
         run: npm install -g yarn && yarn
-      - name: Install Detox CLI
-        run: npm install -g detox-cli
-      - name: Install required iOS simulators
+      - name: Install dependencies for iOS
         run: |
-          sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-          sudo xcodebuild -runFirstLaunch
-          # Install the required simulators (you can adjust this if you need different devices)
-          sudo xcodebuild -device "iPhone 13" -destination 'platform=iOS Simulator,OS=latest,name=iPhone 13'
+          brew install applesimutils
+          npm install -g detox-cli
+      # Build iOS app (Only once)
       - name: Build iOS App
-        run: yarn test:build
-      - name: Run Detox tests
-        run: yarn test:e2e
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
+        run: npx detox build --configuration ios.sim.release
+      # Upload built .app as an artifact
+      - name: Upload iOS app artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: detox-report
-          path: reports/
-          retention-days: 30
+          name: ios-app
+          path: ios/build/Build/Products/Release-iphonesimulator/MyApp.app
+
+  test:
+    runs-on: macos-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm install -g yarn && yarn
+      - name: Install dependencies for iOS
+        run: |
+          brew install applesimutils
+          npm install -g detox-cli
+      # Download the pre-built iOS app artifact
+      - name: Download iOS app artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-app
+      # Copy the .app file to the appropriate folder (if needed)
+      - name: Copy .app to appropriate folder
+        run: cp ios-app/MyApp.app ios/build/Build/Products/Release-iphonesimulator/
+      # Run Detox tests using the pre-built app
+      - name: Run detox tests
+        run: npx detox test --configuration ios.sim.release
