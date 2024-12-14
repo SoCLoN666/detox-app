@@ -1,8 +1,10 @@
 name: E2E (iOS)
 
 on:
+  push:
+    branches: [main, master, testBranch]
   pull_request:
-    branches: [master, testBranch]
+    branches: [master, main, testBranch]
 
 jobs:
   build:
