@@ -109,37 +109,18 @@ jobs:
             echo "Xcode Command Line Tools already installed."
           fi
 
-      - name: Install and Boot Two iPhone 15 Simulators
+      - name: Install and Boot iPhone 15 Simulator
         run: |
           # Accept Xcode License (required in CI/CD environments)
           sudo xcodebuild -license accept
 
-          # List available simulators
-          echo "Listing available simulators..."
+          # Install simulators (e.g., iPhone 15)
           xcrun simctl list devices
-
-          # Check if the second instance (clone) already exists
-          CLONED_SIMULATOR_NAME="iPhone 15 Clone"
-          if ! xcrun simctl list devices | grep -q "$CLONED_SIMULATOR_NAME"; then
-            echo "Cloning iPhone 15 simulator to create $CLONED_SIMULATOR_NAME..."
-            ORIGINAL_SIMULATOR=$(xcrun simctl list devices | grep "iPhone 15" | grep -v "Clone" | head -n 1 | awk -F '[()]' '{print $2}')
-            xcrun simctl clone "$ORIGINAL_SIMULATOR" "$CLONED_SIMULATOR_NAME"
-          fi
-
-          # Boot the original iPhone 15 simulator
-          if ! xcrun simctl list | grep -q "iPhone 15 (.*Booted)"; then
-            echo "Booting original iPhone 15 simulator..."
+          if ! xcrun simctl list | grep -q "iPhone 15.*Booted"; then
+            echo "Booting iPhone 15..."
             xcrun simctl boot "iPhone 15"
           else
-            echo "Original iPhone 15 simulator is already booted."
-          fi
-
-          # Boot the cloned iPhone 15 simulator
-          if ! xcrun simctl list | grep -q "$CLONED_SIMULATOR_NAME (.*Booted)"; then
-            echo "Booting cloned iPhone 15 simulator ($CLONED_SIMULATOR_NAME)..."
-            xcrun simctl boot "$CLONED_SIMULATOR_NAME"
-          else
-            echo "Cloned iPhone 15 simulator ($CLONED_SIMULATOR_NAME) is already booted."
+            echo "iPhone 15 simulator is already booted."
           fi
 
       - name: Run Detox Build
