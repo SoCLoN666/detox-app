@@ -12,7 +12,7 @@
     "test": "jest --watchAll",
     "lint": "expo lint",
     "test:build": "npx detox build --configuration ios.sim.release",
-    "test:e2e": "npx detox test --maxWorkers 1 --configuration ios.sim.release --headless"
+    "test:e2e": "npx detox test --maxWorkers 2 --configuration ios.sim.release --headless"
   },
   "jest": {
     "preset": "jest-expo",
