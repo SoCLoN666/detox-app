@@ -274,7 +274,7 @@ jobs:
       #   run: npm run build:ios
 
       - name: Build Detox
-        run: npm run detox:ios:build
+        run: npm run test:build
 
       - name: Upload iOS app
         uses: actions/upload-artifact@v4
