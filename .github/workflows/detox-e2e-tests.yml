@@ -245,7 +245,7 @@ jobs:
           echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
   build-ios:
     name: iOS - Build app for Detox tests
-    runs-on: macos-13-xlarge
+    runs-on: macos-latest
 
     steps:
       - name: Checkout Code
