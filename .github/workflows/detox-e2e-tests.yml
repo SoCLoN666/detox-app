@@ -241,7 +241,7 @@ jobs:
       - name: Find test files
         id: set-test-files
         run: |
-          TEST_FILES=$(find e2e -name '*.test.ts' | sed 's|e2e/||g' | jq -R -s -c 'split("\n")[:-1]')
+          TEST_FILES=$(find e2e -name '*.test.js' | sed 's|e2e/||g' | jq -R -s -c 'split("\n")[:-1]')
           echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
   build-ios:
     name: iOS - Build app for Detox tests
@@ -286,7 +286,7 @@ jobs:
   run-ios-detox-tests:
     needs: [build-ios, find-test-files]
     name: iOS - Run Detox tests
-    runs-on: macos-13-xlarge
+    runs-on: macos-latest
 
     strategy:
       fail-fast: false
