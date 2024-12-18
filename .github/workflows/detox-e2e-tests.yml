@@ -472,11 +472,11 @@ jobs:
           fi
 
       # Skip Detox Build step, directly use the pre-built app
-      - name: Download iOS app from previous build
-        uses: actions/download-artifact@v4
-        with:
-          name: ios-app-artifact
-          path: ios/build/Build/Products/Release-iphonesimulator/myapp.app
+      # - name: Download iOS app from previous build
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ios-app-artifact
+      #     path: ios/build/Build/Products/Release-iphonesimulator/myapp.app
 
       - name: Run Detox Test(s)
         run: |
