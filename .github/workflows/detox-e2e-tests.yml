@@ -409,8 +409,15 @@ jobs:
 
           xcrun simctl list devices
 
+      - name: Upload iOS app
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app-artifact
+          path: ios/build/Build/Products/Release-iphonesimulator/myapp.app
+          retention-days: 1     
+
       - name: Download iOS Build Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: ios-app-artifact
           path: ios/build/Build/Products/Release-iphonesimulator/myapp.app
