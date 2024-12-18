@@ -404,3 +404,31 @@ jobs:
           fetch-depth: 1
 
       - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.2.0
+
+      - name: Install node_modules
+        run: npm install
+
+      - name: Install Applesimutils
+        run: |
+          brew tap wix/brew
+          brew install applesimutils
+          echo applesimutils --list
+
+      - name: Start Metro Server
+        run: npm run detox:start &
+
+      - name: Run Detox Tests
+        run: |
+          echo "Running test file: ${{ matrix.test-file }} on device: ${{ matrix.device }}"
+          npm run test:e2e -- ${{ matrix.test-file }}
+
+      - name: Upload Test Artifact - GitHub Action
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detox-ios-artifacts-${{ matrix.device }}-${{ matrix.test-file }}
+          path: artifacts
+          retention-days: 1
