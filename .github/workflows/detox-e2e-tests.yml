@@ -354,33 +354,6 @@ on:
     branches: [master, main, testBranch]
 
 jobs:
-  find-test-files:
-    name: Find Detox test files
-    runs-on: macos-latest
-    outputs:
-      test-files: ${{ steps.set-test-files.outputs.test-files }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Find test files
-        id: set-test-files
-        run: |
-          TEST_FILES=$(find e2e -name '*.test.js' | sed 's|e2e/||g' | jq -R -s -c 'split("\n")[:-1]')
-          echo "list of files"
-          echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
-
-      - name: Debug test-files output
-        run: |
-          echo "Output test-files: ${{ steps.set-test-files.outputs.test-files }}"
-
-      - name: Validate test files
-        run: |
-          if [ "${{ steps.set-test-files.outputs.test-files }}" == "[]" ]; then
-            echo "No test files found. Exiting."
-            exit 1
-          fi
-
   build-ios:
     name: iOS - Build app for Detox tests
     runs-on: macos-latest
@@ -407,12 +380,6 @@ jobs:
       - name: Pod Install
         run: cd ios && pod install
 
-      # - name: Generate main.jsbundle
-      #   run: npm run build:ios
-
-      # - name: Build Detox
-      #   run: npm run test:build
-
       - name: Upload iOS app
         uses: actions/upload-artifact@v4
         with:
@@ -421,15 +388,9 @@ jobs:
           retention-days: 1
 
   run-ios-detox-tests:
-    needs: [build-ios, find-test-files]
+    needs: build-ios
     name: iOS - Run Detox tests
     runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        test-file: ${{ fromJson(needs.find-test-files.outputs.test-files) }}
-        ios-version: ["15.0", "16.0"]
-        device: ["iPhone 13", "iPhone 14"]
 
     steps:
       - name: Checkout Code
@@ -456,22 +417,26 @@ jobs:
           brew tap wix/brew
           brew install applesimutils
 
-      - name: Create and boot simulator
+      - name: Create and boot simulators
         run: |
-          UDID=$(xcrun simctl create "Test-${{ matrix.device }}" com.apple.CoreSimulator.SimDeviceType.${{ matrix.device }} com.apple.CoreSimulator.SimRuntime.iOS-${{ matrix.ios-version }})
-          xcrun simctl boot $UDID
-          echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
+          UDID1=$(xcrun simctl create "iPhone15-1" com.apple.CoreSimulator.SimDeviceType.iPhone-15)
+          UDID2=$(xcrun simctl create "iPhone15-2" com.apple.CoreSimulator.SimDeviceType.iPhone-15)
+          xcrun simctl boot $UDID1
+          xcrun simctl boot $UDID2
+          echo "SIMULATOR_UDID1=$UDID1" >> $GITHUB_ENV
+          echo "SIMULATOR_UDID2=$UDID2" >> $GITHUB_ENV
 
       - name: Start Metro Server
         run: npm run detox:start &
 
       - name: Run Detox tests
-        run: npm run test:e2e -- ${{ matrix.test-file }} --configuration ios.sim.release --device-name "${{ matrix.device }}" --device-id ${{ env.SIMULATOR_UDID }}
+        run: |
+          npm run test:e2e -- --configuration ios.sim.release --device-name "iPhone 15" --device-id ${{ env.SIMULATOR_UDID1 }},${{ env.SIMULATOR_UDID2 }} --workers 2 --maxWorkers 2
 
       - name: Upload Test Artifact - GitHub Action
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: detox-ios-artifacts-${{ matrix.test-file }}-${{ matrix.ios-version }}-${{ matrix.device }}
+          name: detox-ios-artifacts
           path: artifacts
           retention-days: 1
