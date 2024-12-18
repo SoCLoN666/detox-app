@@ -480,9 +480,9 @@ jobs:
 
       - name: Run Detox Test(s)
         run: |
-          yarn start &
+          # yarn start &
 
-          METRO_BUNDLER_PID=$!
+          # METRO_BUNDLER_PID=$!
 
           # Run Detox tests using the pre-built app
           yarn test:e2e
@@ -490,6 +490,6 @@ jobs:
           DETOX_EXIT_CODE=$?
 
           # Clean up the Metro bundler process
-          kill $METRO_BUNDLER_PID
+          # kill $METRO_BUNDLER_PID
 
           exit $DETOX_EXIT_CODE
