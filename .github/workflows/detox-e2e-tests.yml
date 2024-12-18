@@ -329,14 +329,9 @@ jobs:
         run: |
           brew tap wix/brew
           brew install applesimutils
+          echo applesimutils --list
       - name: Start Metro Server
         run: npm run detox:start &
-
-      # - name: Create a Simulator
-      #   run: |
-      #     SIMULATOR_NAME="iPhone 15 ${{ matrix.test-file }}"
-      #     xcrun simctl create "$SIMULATOR_NAME" "iPhone 15" "latest"
-      #     echo "SIMULATOR_NAME=$SIMULATOR_NAME" >> $GITHUB_ENV
 
       - name: Run Detox tests
         run: npm run test:e2e -- ${{ matrix.test-file }}
