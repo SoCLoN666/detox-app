@@ -333,7 +333,7 @@ jobs:
         run: npm run detox:start &
 
       - name: Run Detox tests
-        run: npm run test:e2e -- ${{ matrix.test-file }}
+        run: DETOX_DEVICE_NAME="iPhone 15 (${GITHUB_RUN_ID}-${{ matrix.test-file }})" npm run test:e2e -- ${{ matrix.test-file }}
 
       - name: Upload Test Artifact - GitHub Action
         if: failure()
