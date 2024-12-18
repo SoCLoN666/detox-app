@@ -41,6 +41,30 @@ module.exports = {
         type: "iPhone 15",
       },
     },
+    simulator2: {
+      type: "ios.simulator",
+      device: {
+        type: "iPhone 15",
+      },
+    },
+    simulator3: {
+      type: "ios.simulator",
+      device: {
+        type: "iPhone 15",
+      },
+    },
+    simulator4: {
+      type: "ios.simulator",
+      device: {
+        type: "iPhone 15",
+      },
+    },
+    simulator5: {
+      type: "ios.simulator",
+      device: {
+        type: "iPhone 15",
+      },
+    },
     attached: {
       type: "android.attached",
       device: {

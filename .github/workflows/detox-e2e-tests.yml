@@ -366,8 +366,20 @@ jobs:
       - name: Find test files
         id: set-test-files
         run: |
+          # Find all test files in the e2e folder
           TEST_FILES=$(find e2e -name '*.test.js' | sed 's|e2e/||g' | jq -R -s -c 'split("\n")[:-1]')
           echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
+
+      - name: Debug test-files output
+        run: |
+          echo "Output test-files: ${{ steps.set-test-files.outputs.test-files }}"
+
+      - name: Validate test files
+        run: |
+          if [ "${{ steps.set-test-files.outputs.test-files }}" == "[]" ]; then
+            echo "No test files found. Exiting."
+            exit 1
+          fi
 
   run-ios-detox-tests:
     needs: [find-test-files]
@@ -378,14 +390,12 @@ jobs:
       fail-fast: false
       matrix:
         test-file: ${{ fromJson(needs.find-test-files.outputs.test-files) }}
-        device: ["iPhone 8", "iPhone 12", "iPhone 14"] # Add devices here
+        device: ["simulator", "simulator2", "simulator3", "simulator4", "simulator5"] # List of devices
         include:
-          - test-file: "test1.test.js"
-            device: "iPhone 8"
-          - test-file: "test2.test.js"
-            device: "iPhone 12"
-          - test-file: "test3.test.js"
-            device: "iPhone 14"
+          # Dynamically add test files to device combinations
+          # Each test file will be run on every device defined in the matrix
+          ${{ fromJson(needs.find-test-files.outputs.test-files) }}:
+            device: ["simulator", "simulator2", "simulator3", "simulator4", "simulator5"]
 
     steps:
       - name: Checkout Code
@@ -394,31 +404,3 @@ jobs:
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.2.0
-
-      - name: Install node_modules
-        run: npm install
-
-      - name: Install Applesimutils
-        run: |
-          brew tap wix/brew
-          brew install applesimutils
-          echo applesimutils --list
-
-      - name: Start Metro Server
-        run: npm run detox:start &
-
-      - name: Run Detox Tests
-        run: |
-          echo "Running on device: ${{ matrix.device }}"
-          npm run test:e2e -- ${{ matrix.test-file }}
-
-      - name: Upload Test Artifact
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: detox-ios-artifacts-${{ matrix.device }}-${{ matrix.test-file }}
-          path: artifacts
-          retention-days: 1
