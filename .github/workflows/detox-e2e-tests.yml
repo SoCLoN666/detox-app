@@ -367,19 +367,7 @@ jobs:
         id: set-test-files
         run: |
           TEST_FILES=$(find e2e -name '*.test.js' | sed 's|e2e/||g' | jq -R -s -c 'split("\n")[:-1]')
-          echo "list of files"
           echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
-
-      - name: Debug test-files output
-        run: |
-          echo "Output test-files: ${{ steps.set-test-files.outputs.test-files }}"
-
-      - name: Validate test files
-        run: |
-          if [ "${{ steps.set-test-files.outputs.test-files }}" == "[]" ]; then
-            echo "No test files found. Exiting."
-            exit 1
-          fi
 
   run-ios-detox-tests:
     needs: [find-test-files]
@@ -389,7 +377,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        batch: ${{ fromJson(needs.find-test-files.outputs.test-files) }}
+        test-file: ${{ fromJson(needs.find-test-files.outputs.test-files) }}
+        device: ["iPhone 8", "iPhone 12", "iPhone 14"] # Add devices here
+        include:
+          - test-file: "test1.test.js"
+            device: "iPhone 8"
+          - test-file: "test2.test.js"
+            device: "iPhone 12"
+          - test-file: "test3.test.js"
+            device: "iPhone 14"
 
     steps:
       - name: Checkout Code
@@ -416,14 +412,13 @@ jobs:
 
       - name: Run Detox Tests
         run: |
-          for TEST_FILE in ${{ matrix.batch }}; do
-            npm run test:e2e -- $TEST_FILE || exit $?
-          done
+          echo "Running on device: ${{ matrix.device }}"
+          npm run test:e2e -- ${{ matrix.test-file }}
 
-      - name: Upload Test Artifact - GitHub Action
+      - name: Upload Test Artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: detox-ios-artifacts-${{ matrix.batch }}
+          name: detox-ios-artifacts-${{ matrix.device }}-${{ matrix.test-file }}
           path: artifacts
           retention-days: 1
