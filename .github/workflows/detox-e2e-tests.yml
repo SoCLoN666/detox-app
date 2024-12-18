@@ -251,12 +251,12 @@
 #         run: |
 #           echo "Output test-files: ${{ steps.set-test-files.outputs.test-files }}"
 
-#       - name: Validate test files
-#         run: |
-#           if [ "${{ steps.set-test-files.outputs.test-files }}" == "[]" ]; then
-#             echo "No test files found. Exiting."
-#             exit 1
-#           fi
+# - name: Validate test files
+#   run: |
+#     if [ "${{ steps.set-test-files.outputs.test-files }}" == "[]" ]; then
+#       echo "No test files found. Exiting."
+#       exit 1
+#     fi
 #   build-ios:
 #     name: iOS - Build app for Detox tests
 #     runs-on: macos-latest
@@ -379,6 +379,7 @@ jobs:
           if [ "${{ steps.set-test-files.outputs.test-files }}" == "[]" ]; then
             echo "No test files found. Exiting."
             exit 1
+          fi
 
   run-ios-detox-tests:
     needs: [find-test-files]
