@@ -346,8 +346,6 @@
 #           path: artifacts
 #           retention-days: 1
 
-
-
 name: Run Detox Tests
 on:
   push:
@@ -365,27 +363,27 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-- name: Find test files
-  id: set-test-files
-  run: |
-    TEST_FILES=$(find e2e -name '*.test.js' | sed 's|e2e/||g' | jq -R -s -c 'split("\n")[:-1]')
-    echo "list of files"
-    echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
+      - name: Find test files
+        id: set-test-files
+        run: |
+          TEST_FILES=$(find e2e -name '*.test.js' | sed 's|e2e/||g' | jq -R -s -c 'split("\n")[:-1]')
+          echo "list of files"
+          echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
 
       - name: Debug test-files output
         run: |
           echo "Output test-files: ${{ steps.set-test-files.outputs.test-files }}"
 
-- name: Validate test files
-  run: |
-    if [ "${{ steps.set-test-files.outputs.test-files }}" == "[]" ]; then
-      echo "No test files found. Exiting."
-      exit 1
-    fi
+      - name: Validate test files
+        run: |
+          if [ "${{ steps.set-test-files.outputs.test-files }}" == "[]" ]; then
+            echo "No test files found. Exiting."
+            exit 1
+          fi
+
   build-ios:
     name: iOS - Build app for Detox tests
     runs-on: macos-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -426,13 +424,12 @@ jobs:
     needs: [build-ios, find-test-files]
     name: iOS - Run Detox tests
     runs-on: macos-latest
-
     strategy:
       fail-fast: false
       matrix:
         test-file: ${{ fromJson(needs.find-test-files.outputs.test-files) }}
-        ios-version: ['15.0', '16.0']
-        device: ['iPhone 13', 'iPhone 14']
+        ios-version: ["15.0", "16.0"]
+        device: ["iPhone 13", "iPhone 14"]
 
     steps:
       - name: Checkout Code
