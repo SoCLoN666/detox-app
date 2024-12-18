@@ -431,7 +431,7 @@ jobs:
 
       - name: Run Detox tests
         run: |
-          npm run test:e2e -- --configuration ios.sim.release --device-name "iPhone 15" --device-id ${{ env.SIMULATOR_UDID1 }},${{ env.SIMULATOR_UDID2 }} --workers 2 --maxWorkers 2
+          npx detox test --maxWorkers 5 --configuration ios.sim.release --device-name "iPhone 15" --device-id ${{ env.SIMULATOR_UDID1 }},${{ env.SIMULATOR_UDID2 }}
 
       - name: Upload Test Artifact - GitHub Action
         if: failure()
