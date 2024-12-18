@@ -59,8 +59,12 @@ module.exports = {
       device: "simulator",
       app: "ios.debug",
     },
-    "ios.sim.release": {
+    "ios.sim.release1": {
       device: "simulator",
+      app: "ios.release",
+    },
+    "ios.sim.release2": {
+      device: "simulator2",
       app: "ios.release",
     },
     "android.att.debug": {
