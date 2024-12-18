@@ -332,14 +332,14 @@ jobs:
       - name: Start Metro Server
         run: npm run detox:start &
 
-      - name: Create a Simulator
-        run: |
-          SIMULATOR_NAME="iPhone 15 ${{ matrix.test-file }}"
-          xcrun simctl create "$SIMULATOR_NAME" "iPhone 15" "latest"
-          echo "SIMULATOR_NAME=$SIMULATOR_NAME" >> $GITHUB_ENV
+      # - name: Create a Simulator
+      #   run: |
+      #     SIMULATOR_NAME="iPhone 15 ${{ matrix.test-file }}"
+      #     xcrun simctl create "$SIMULATOR_NAME" "iPhone 15" "latest"
+      #     echo "SIMULATOR_NAME=$SIMULATOR_NAME" >> $GITHUB_ENV
 
       - name: Run Detox tests
-        run: DETOX_DEVICE_NAME="$SIMULATOR_NAME" npm run test:e2e -- ${{ matrix.test-file }}
+        run: npm run test:e2e -- ${{ matrix.test-file }}
 
       - name: Upload Test Artifact - GitHub Action
         if: failure()
