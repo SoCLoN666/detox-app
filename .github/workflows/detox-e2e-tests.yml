@@ -240,12 +240,12 @@
 #       - name: Checkout Code
 #         uses: actions/checkout@v4
 
-#       - name: Find test files
-#         id: set-test-files
-#         run: |
-#           TEST_FILES=$(find e2e -name '*.test.js' | sed 's|e2e/||g' | jq -R -s -c 'split("\n")[:-1]')
-#           echo "list of files"
-#           echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
+# - name: Find test files
+#   id: set-test-files
+#   run: |
+#     TEST_FILES=$(find e2e -name '*.test.js' | sed 's|e2e/||g' | jq -R -s -c 'split("\n")[:-1]')
+#     echo "list of files"
+#     echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
 
 #       - name: Debug test-files output
 #         run: |
@@ -367,9 +367,8 @@ jobs:
         id: set-test-files
         run: |
           TEST_FILES=$(find e2e -name '*.test.js' | sed 's|e2e/||g' | jq -R -s -c 'split("\n")[:-1]')
-          NUM_BATCHES=5
-          TEST_FILES_GROUPS=$(echo $TEST_FILES | jq -c "[.[range(0; length; (length/$NUM_BATCHES) | ceil)] | (add | split(\"\n\")[:-1])]")
-          echo "test-files=$TEST_FILES_GROUPS" >> $GITHUB_OUTPUT
+          echo "list of files"
+          echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
 
       - name: Debug test-files output
         run: |
