@@ -346,7 +346,78 @@
 #           path: artifacts
 #           retention-days: 1
 
-name: Run Detox Tests
+# name: E2E (iOS)
+
+# on:
+#   push:
+#     branches: [main, master, testBranch]
+#   pull_request:
+#     branches: [master, main, testBranch]
+
+# jobs:
+#   build:
+#     name: E2E (iOS)
+#     runs-on: macOS-latest
+
+#     steps:
+#       - uses: actions/checkout@v1
+
+#       - name: Install Node
+#         uses: actions/setup-node@v1
+#         with:
+#           node-version: "18"
+
+#       - name: Install Yarn Dependencies
+#         run: yarn install
+
+#       - name: Install Pod Dependencies
+#         run: cd ./ios && pod install && cd ..
+
+#       - name: Install Detox Dependencies
+#         run: |
+#           brew tap wix/brew
+#           brew install applesimutils
+
+#       - name: Check and Install Xcode Command Line Tools
+#         run: |
+#           if ! xcode-select -p > /dev/null; then
+#             echo "Installing Xcode Command Line Tools..."
+#             xcode-select --install
+#           else
+#             echo "Xcode Command Line Tools already installed."
+#           fi
+
+#       - name: Install and Boot iPhone 15 Simulator
+#         run: |
+#           # Accept Xcode License (required in CI/CD environments)
+#           sudo xcodebuild -license accept
+
+#           # Install simulators (e.g., iPhone 15)
+#           xcrun simctl list devices
+#           if ! xcrun simctl list | grep -q "iPhone 15.*Booted"; then
+#             echo "Booting iPhone 15..."
+#             xcrun simctl boot "iPhone 15"
+#           else
+#             echo "iPhone 15 simulator is already booted."
+#           fi
+
+#       - name: Run Detox Build
+#         run: yarn test:build
+
+#       - name: Run Detox Test(s)
+#         run: |
+#           yarn start &
+
+#           METRO_BUNDLER_PID=$!
+
+#           yarn test:e2e
+
+#           DETOX_EXIT_CODE=$?
+
+#           kill $METRO_BUNDLER_PID
+
+#           exit $DETOX_EXIT_CODE
+
 on:
   push:
     branches: [main, master, testBranch]
@@ -354,117 +425,71 @@ on:
     branches: [master, main, testBranch]
 
 jobs:
-  find-test-files:
-    name: Find Detox test files
-    runs-on: macos-latest
-    outputs:
-      test-files: ${{ steps.set-test-files.outputs.test-files }}
+  build:
+    name: E2E (iOS)
+    runs-on: macOS-latest
+
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v1
 
-      - name: Find test files
-        id: set-test-files
-        run: |
-          TEST_FILES=$(find e2e -name '*.test.js' | sed 's|e2e/||g' | jq -R -s -c 'split("\n")[:-1]')
-          echo "list of files"
-          echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "18"
 
-      - name: Debug test-files output
-        run: |
-          echo "Output test-files: ${{ steps.set-test-files.outputs.test-files }}"
+      - name: Install Yarn Dependencies
+        run: yarn install
 
-      - name: Validate test files
+      - name: Install Pod Dependencies
+        run: cd ./ios && pod install && cd ..
+
+      - name: Install Detox Dependencies
         run: |
-          if [ "${{ steps.set-test-files.outputs.test-files }}" == "[]" ]; then
-            echo "No test files found. Exiting."
-            exit 1
+          brew tap wix/brew
+          brew install applesimutils
+
+      - name: Check and Install Xcode Command Line Tools
+        run: |
+          if ! xcode-select -p > /dev/null; then
+            echo "Installing Xcode Command Line Tools..."
+            xcode-select --install
+          else
+            echo "Xcode Command Line Tools already installed."
           fi
-  build-ios:
-    name: iOS - Build app for Detox tests
-    runs-on: macos-latest
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
+      - name: Install and Boot iPhone 15 Simulator
+        run: |
+          # Accept Xcode License (required in CI/CD environments)
+          sudo xcodebuild -license accept
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.2.0
+          # Install simulators (e.g., iPhone 15)
+          xcrun simctl list devices
+          if ! xcrun simctl list | grep -q "iPhone 15.*Booted"; then
+            echo "Booting iPhone 15..."
+            xcrun simctl boot "iPhone 15"
+          else
+            echo "iPhone 15 simulator is already booted."
+          fi
 
-      - name: Install node_modules
-        run: npm install
-
-      - uses: actions/cache@v4
-        id: cache
-        with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
-
-      - name: Pod Install
-        run: cd ios && pod install
-
-      # - name: Generate main.jsbundle
-      #   run: npm run build:ios
-
-      # - name: Build Detox
-      #   run: npm run test:build
-
-      - name: Upload iOS app
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-app-artifact
-          path: ios/build/Build/Products/Release-iphonesimulator/myapp.app
-          retention-days: 1
-
-  run-ios-detox-tests:
-    needs: [build-ios, find-test-files]
-    name: iOS - Run Detox tests
-    runs-on: macos-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        test-file: ${{ fromJson(needs.find-test-files.outputs.test-files) }}
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
-      - name: Download iOS app
+      # Skip Detox Build step, directly use the pre-built app
+      - name: Download iOS app from previous build
         uses: actions/download-artifact@v4
         with:
           name: ios-app-artifact
           path: ios/build/Build/Products/Release-iphonesimulator/myapp.app
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.2.0
-
-      - name: Install node_modules
-        run: npm install
-
-      - name: Install Applesimutils
+      - name: Run Detox Test(s)
         run: |
-          brew tap wix/brew
-          brew install applesimutils
-          echo applesimutils --list
-      - name: Start Metro Server
-        run: npm run detox:start &
+          yarn start &
 
-      - name: Run Detox tests
-        run: npm run test:e2e -- ${{ matrix.test-file }}
+          METRO_BUNDLER_PID=$!
 
-      - name: Upload Test Artifact - GitHub Action
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: detox-ios-artifacts-${{ matrix.test-file }}
-          path: artifacts
-          retention-days: 1
+          # Run Detox tests using the pre-built app
+          yarn test:e2e
+
+          DETOX_EXIT_CODE=$?
+
+          # Clean up the Metro bundler process
+          kill $METRO_BUNDLER_PID
+
+          exit $DETOX_EXIT_CODE
