@@ -418,6 +418,8 @@
 
 #           exit $DETOX_EXIT_CODE
 
+name: E2E (iOS)
+
 on:
   push:
     branches: [main, master, testBranch]
@@ -471,25 +473,19 @@ jobs:
             echo "iPhone 15 simulator is already booted."
           fi
 
-      # Skip Detox Build step, directly use the pre-built app
-      # - name: Download iOS app from previous build
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: ios-app-artifact
-      #     path: ios/build/Build/Products/Release-iphonesimulator/myapp.app
+      - name: Run Detox Build
+        run: yarn test:build
 
       - name: Run Detox Test(s)
         run: |
-          # yarn start &
+          yarn start &
 
-          # METRO_BUNDLER_PID=$!
+          METRO_BUNDLER_PID=$!
 
-          # Run Detox tests using the pre-built app
           yarn test:e2e
 
           DETOX_EXIT_CODE=$?
 
-          # Clean up the Metro bundler process
-          # kill $METRO_BUNDLER_PID
+          kill $METRO_BUNDLER_PID
 
           exit $DETOX_EXIT_CODE
