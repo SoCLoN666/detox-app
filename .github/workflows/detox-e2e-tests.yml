@@ -346,6 +346,8 @@
 #           path: artifacts
 #           retention-days: 1
 
+
+
 name: Run Detox Tests
 on:
   push:
@@ -363,39 +365,26 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Find test files
-        id: set-test-files
-        run: |
-          # Find all test files in the e2e folder
-          TEST_FILES=$(find e2e -name '*.test.js' | sed 's|e2e/||g' | jq -R -s -c 'split("\n")[:-1]')
-          echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
+- name: Find test files
+  id: set-test-files
+  run: |
+    TEST_FILES=$(find e2e -name '*.test.js' | sed 's|e2e/||g' | jq -R -s -c 'split("\n")[:-1]')
+    echo "list of files"
+    echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
 
       - name: Debug test-files output
         run: |
           echo "Output test-files: ${{ steps.set-test-files.outputs.test-files }}"
 
-      - name: Validate test files
-        run: |
-          if [ "${{ steps.set-test-files.outputs.test-files }}" == "[]" ]; then
-            echo "No test files found. Exiting."
-            exit 1
-          fi
-
-  run-ios-detox-tests:
-    needs: [find-test-files]
-    name: iOS - Run Detox tests
+- name: Validate test files
+  run: |
+    if [ "${{ steps.set-test-files.outputs.test-files }}" == "[]" ]; then
+      echo "No test files found. Exiting."
+      exit 1
+    fi
+  build-ios:
+    name: iOS - Build app for Detox tests
     runs-on: macos-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        test-file: ${{ fromJson(needs.find-test-files.outputs.test-files) }}
-        device: ["simulator", "simulator2", "simulator3", "simulator4", "simulator5"] # List of devices
-        include:
-          # Dynamically add test files to device combinations
-          # Each test file will be run on every device defined in the matrix
-          ${{ fromJson(needs.find-test-files.outputs.test-files) }}:
-            device: ["simulator", "simulator2", "simulator3", "simulator4", "simulator5"]
 
     steps:
       - name: Checkout Code
@@ -411,24 +400,81 @@ jobs:
       - name: Install node_modules
         run: npm install
 
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+
+      - name: Pod Install
+        run: cd ios && pod install
+
+      # - name: Generate main.jsbundle
+      #   run: npm run build:ios
+
+      # - name: Build Detox
+      #   run: npm run test:build
+
+      - name: Upload iOS app
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app-artifact
+          path: ios/build/Build/Products/Release-iphonesimulator/myapp.app
+          retention-days: 1
+
+  run-ios-detox-tests:
+    needs: [build-ios, find-test-files]
+    name: iOS - Run Detox tests
+    runs-on: macos-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        test-file: ${{ fromJson(needs.find-test-files.outputs.test-files) }}
+        ios-version: ['15.0', '16.0']
+        device: ['iPhone 13', 'iPhone 14']
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download iOS app
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-app-artifact
+          path: ios/build/Build/Products/Release-iphonesimulator/myapp.app
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.2.0
+
+      - name: Install node_modules
+        run: npm install
+
       - name: Install Applesimutils
         run: |
           brew tap wix/brew
           brew install applesimutils
-          echo applesimutils --list
+
+      - name: Create and boot simulator
+        run: |
+          UDID=$(xcrun simctl create "Test-${{ matrix.device }}" com.apple.CoreSimulator.SimDeviceType.${{ matrix.device }} com.apple.CoreSimulator.SimRuntime.iOS-${{ matrix.ios-version }})
+          xcrun simctl boot $UDID
+          echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
 
       - name: Start Metro Server
         run: npm run detox:start &
 
-      - name: Run Detox Tests
-        run: |
-          echo "Running test file: ${{ matrix.test-file }} on device: ${{ matrix.device }}"
-          npm run test:e2e -- ${{ matrix.test-file }}
+      - name: Run Detox tests
+        run: npm run test:e2e -- ${{ matrix.test-file }} --configuration ios.sim.release --device-name "${{ matrix.device }}" --device-id ${{ env.SIMULATOR_UDID }}
 
       - name: Upload Test Artifact - GitHub Action
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: detox-ios-artifacts-${{ matrix.device }}-${{ matrix.test-file }}
+          name: detox-ios-artifacts-${{ matrix.test-file }}-${{ matrix.ios-version }}-${{ matrix.device }}
           path: artifacts
           retention-days: 1
