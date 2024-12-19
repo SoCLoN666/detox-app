@@ -532,7 +532,7 @@ jobs:
 
       - name: Boot iOS Simulator
         run: |
-          xcode-select --install
+          # xcode-select --install
           sudo xcodebuild -license accept
           xcrun simctl boot "iPhone 16" # Match the simulator in your config
 
