@@ -420,79 +420,7 @@
 
 # FINAL TEST
 
-# name: E2E (iOS)
-
-# on:
-#   push:
-#     branches: [main, master, testBranch]
-#   pull_request:
-#     branches: [master, main, testBranch]
-
-# jobs:
-#   build:
-#     name: E2E (iOS)
-#     runs-on: macOS-latest
-
-#     steps:
-#       - uses: actions/checkout@v1
-
-#       - name: Install Node
-#         uses: actions/setup-node@v1
-#         with:
-#           node-version: "18"
-
-#       - name: Install Yarn Dependencies
-#         run: yarn install
-
-#       - name: Install Pod Dependencies
-#         run: cd ./ios && pod install && cd ..
-
-# - name: Install Detox Dependencies
-#   run: |
-#     brew tap wix/brew
-#     brew install applesimutils
-
-#       - name: Check and Install Xcode Command Line Tools
-#         run: |
-#           if ! xcode-select -p > /dev/null; then
-#             echo "Installing Xcode Command Line Tools..."
-#             xcode-select --install
-#           else
-#             echo "Xcode Command Line Tools already installed."
-#           fi
-
-#       - name: Install and Boot iPhone 15 Simulator
-#         run: |
-#           # Accept Xcode License (required in CI/CD environments)
-#           sudo xcodebuild -license accept
-
-#           # Install simulators (e.g., iPhone 15)
-#           xcrun simctl list devices
-#           if ! xcrun simctl list | grep -q "iPhone 15.*Booted"; then
-#             echo "Booting iPhone 15..."
-#             xcrun simctl boot "iPhone 15"
-#           else
-#             echo "iPhone 15 simulator is already booted."
-#           fi
-
-#       - name: Run Detox Build
-#         run: yarn test:build
-
-#       - name: Run Detox Test(s)
-#         run: |
-#           yarn start &
-
-#           # METRO_BUNDLER_PID=$!
-
-#           yarn test:e2e
-
-#           DETOX_EXIT_CODE=$?
-
-#           # kill $METRO_BUNDLER_PID
-
-#           exit $DETOX_EXIT_CODE
-
-name: Detox iOS Tests
+name: E2E (iOS)
 
 on:
   push:
@@ -501,40 +429,112 @@ on:
     branches: [master, main, testBranch]
 
 jobs:
-  detox-tests:
-    runs-on: macos-latest
+  build:
+    name: E2E (iOS)
+    runs-on: macOS-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Install Node
+        uses: actions/setup-node@v1
         with:
-          node-version: "18" # Match your project's version
+          node-version: "18"
 
-      - name: Install dependencies
-        run: yarn install # or npm install
-
-      - name: Install Detox CLI
-        run: npm install -g detox-cli
+      - name: Install Yarn Dependencies
+        run: yarn install
 
       - name: Install Pod Dependencies
         run: cd ./ios && pod install && cd ..
 
-      - name: Install Detox Dependencies
-        run: |
-          brew tap wix/brew
-          brew install applesimutils
+- name: Install Detox Dependencies
+  run: |
+    brew tap wix/brew
+    brew install applesimutils
 
-      # - name: Build app
-      #   run: npx detox build --configuration ios.sim.release
-
-      - name: Boot iOS Simulator
+      - name: Check and Install Xcode Command Line Tools
         run: |
-          # xcode-select --install
+          if ! xcode-select -p > /dev/null; then
+            echo "Installing Xcode Command Line Tools..."
+            xcode-select --install
+          else
+            echo "Xcode Command Line Tools already installed."
+          fi
+
+      - name: Install and Boot iPhone 15 Simulator
+        run: |
+          # Accept Xcode License (required in CI/CD environments)
           sudo xcodebuild -license accept
-          xcrun simctl boot "iPhone 16" # Match the simulator in your config
 
-      - name: Run Detox tests
-        run: npx detox test --maxWorkers 2 --configuration ios.sim.release --headless
+          # Install simulators (e.g., iPhone 15)
+          xcrun simctl list devices
+          if ! xcrun simctl list | grep -q "iPhone 15.*Booted"; then
+            echo "Booting iPhone 15..."
+            xcrun simctl boot "iPhone 15"
+          else
+            echo "iPhone 15 simulator is already booted."
+          fi
+
+      - name: Run Detox Build
+        run: yarn test:build
+
+      - name: Run Detox Test(s)
+        run: |
+          yarn start &
+
+          # METRO_BUNDLER_PID=$!
+
+          yarn test:e2e
+
+          DETOX_EXIT_CODE=$?
+
+          # kill $METRO_BUNDLER_PID
+
+          exit $DETOX_EXIT_CODE
+
+# name: Detox iOS Tests
+
+# on:
+#   push:
+#     branches: [main, master, testBranch]
+#   pull_request:
+#     branches: [master, main, testBranch]
+
+# jobs:
+#   detox-tests:
+#     runs-on: macos-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: "18" # Match your project's version
+
+#       - name: Install dependencies
+#         run: yarn install # or npm install
+
+#       - name: Install Detox CLI
+#         run: npm install -g detox-cli
+
+#       - name: Install Pod Dependencies
+#         run: cd ./ios && pod install && cd ..
+
+#       - name: Install Detox Dependencies
+#         run: |
+#           brew tap wix/brew
+#           brew install applesimutils
+
+#       # - name: Build app
+#       #   run: npx detox build --configuration ios.sim.release
+
+#       - name: Boot iOS Simulator
+#         run: |
+#           # xcode-select --install
+#           sudo xcodebuild -license accept
+#           xcrun simctl boot "iPhone 16" # Match the simulator in your config
+
+#       - name: Run Detox tests
+#         run: npx detox test --maxWorkers 2 --configuration ios.sim.release --headless
