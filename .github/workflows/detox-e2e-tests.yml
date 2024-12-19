@@ -519,6 +519,9 @@ jobs:
       - name: Install Detox CLI
         run: npm install -g detox-cli
 
+      - name: Install Pod Dependencies
+        run: cd ./ios && pod install && cd ..
+
       - name: Build app
         run: npx detox build --configuration ios.sim.release
 
