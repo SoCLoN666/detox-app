@@ -447,10 +447,10 @@
 #       - name: Install Pod Dependencies
 #         run: cd ./ios && pod install && cd ..
 
-#       - name: Install Detox Dependencies
-#         run: |
-#           brew tap wix/brew
-#           brew install applesimutils
+# - name: Install Detox Dependencies
+#   run: |
+#     brew tap wix/brew
+#     brew install applesimutils
 
 #       - name: Check and Install Xcode Command Line Tools
 #         run: |
@@ -522,8 +522,13 @@ jobs:
       - name: Install Pod Dependencies
         run: cd ./ios && pod install && cd ..
 
-      - name: Build app
-        run: npx detox build --configuration ios.sim.release
+      - name: Install Detox Dependencies
+        run: |
+          brew tap wix/brew
+          brew install applesimutils
+
+      # - name: Build app
+      #   run: npx detox build --configuration ios.sim.release
 
       - name: Boot iOS Simulator
         run: |
