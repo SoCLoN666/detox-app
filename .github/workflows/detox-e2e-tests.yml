@@ -526,7 +526,10 @@ jobs:
         run: npx detox build --configuration ios.sim.release
 
       - name: Boot iOS Simulator
-        run: xcrun simctl boot "iPhone 16" # Match the simulator in your config
+        run: |
+          xcode-select --install
+          sudo xcodebuild -license accept
+          xcrun simctl boot "iPhone 16" # Match the simulator in your config
 
       - name: Run Detox tests
         run: npx detox test --maxWorkers 2 --configuration ios.sim.release --headless
