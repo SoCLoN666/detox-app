@@ -39,7 +39,7 @@ export default function TabTwoScreen() {
         </ExternalLink>
       </Collapsible>
       <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
+        <ThemedText testID="Android, iOS, and web support option text">
           You can open this project on Android, iOS, and the web. To open the web version, press{" "}
           <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
         </ThemedText>
@@ -50,7 +50,11 @@ export default function TabTwoScreen() {
           <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
           different screen densities
         </ThemedText>
-        <Image source={require("@/assets/images/react-logo.png")} style={{ alignSelf: "center" }} />
+        <Image
+          testID="image"
+          source={require("@/assets/images/react-logo.png")}
+          style={{ alignSelf: "center" }}
+        />
         <ExternalLink href="https://reactnative.dev/docs/images">
           <ThemedText type="link">Learn more</ThemedText>
         </ExternalLink>
@@ -77,7 +81,7 @@ export default function TabTwoScreen() {
         </ExternalLink>
       </Collapsible>
       <Collapsible title="Animations">
-        <ThemedText>
+        <ThemedText testID="animations text">
           This template includes an example of an animated component. The{" "}
           <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
           the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{" "}
