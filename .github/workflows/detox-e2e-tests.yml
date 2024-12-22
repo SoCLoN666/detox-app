@@ -472,7 +472,7 @@ jobs:
           METRO_BUNDLER_PID=$!  # Store Metro process ID
 
           # Run Detox E2E tests
-          npx detox test --maxWorkers 2 --configuration ios.sim.release --headless
+          npx detox test --maxWorkers 1 --configuration ios.sim.release --headless
 
           DETOX_EXIT_CODE=$?  # Capture the Detox exit code
 
