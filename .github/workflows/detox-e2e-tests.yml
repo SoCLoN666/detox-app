@@ -426,7 +426,7 @@ on:
   push:
     branches: [main, master, testBranch]
   pull_request:
-    branches: [master, main, testBranch]
+    branches: [main, master, testBranch]
 
 jobs:
   build:
@@ -434,61 +434,50 @@ jobs:
     runs-on: macOS-latest
 
     steps:
-      - uses: actions/checkout@v1
+      # Check out the code
+      - uses: actions/checkout@v3
 
-      - name: Install Node
-        uses: actions/setup-node@v1
+      # Install Node.js
+      - name: Install Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: "18"
 
+      # Install Yarn Dependencies
       - name: Install Yarn Dependencies
         run: yarn install
 
+      # Install iOS Pod Dependencies
       - name: Install Pod Dependencies
-        run: cd ./ios && pod install && cd ..
+        run: cd ios && pod install && cd ..
 
-- name: Install Detox Dependencies
-  run: |
-    brew tap wix/brew
-    brew install applesimutils
-
-      - name: Check and Install Xcode Command Line Tools
+      # Install Detox Dependencies (applesimutils)
+      - name: Install Detox Dependencies
         run: |
-          if ! xcode-select -p > /dev/null; then
-            echo "Installing Xcode Command Line Tools..."
-            xcode-select --install
-          else
-            echo "Xcode Command Line Tools already installed."
-          fi
+          brew tap wix/brew
+          brew install applesimutils
 
-      - name: Install and Boot iPhone 15 Simulator
-        run: |
-          # Accept Xcode License (required in CI/CD environments)
-          sudo xcodebuild -license accept
+      # Accept Xcode License (required in CI/CD)
+      - name: Accept Xcode License
+        run: sudo xcodebuild -license accept
 
-          # Install simulators (e.g., iPhone 15)
-          xcrun simctl list devices
-          if ! xcrun simctl list | grep -q "iPhone 15.*Booted"; then
-            echo "Booting iPhone 15..."
-            xcrun simctl boot "iPhone 15"
-          else
-            echo "iPhone 15 simulator is already booted."
-          fi
-
+      # Run Detox Build (build the app for testing)
       - name: Run Detox Build
         run: yarn test:build
 
-      - name: Run Detox Test(s)
+      # Run Detox Tests
+      - name: Run Detox Tests
         run: |
-          yarn start &
+          yarn start &  # Start the Metro bundler in the background
+          METRO_BUNDLER_PID=$!  # Store Metro process ID
 
-          # METRO_BUNDLER_PID=$!
+          # Run Detox E2E tests
+          npx detox test --maxWorkers 2 --configuration ios.sim.release --headless
 
-          yarn test:e2e
+          DETOX_EXIT_CODE=$?  # Capture the Detox exit code
 
-          DETOX_EXIT_CODE=$?
-
-          # kill $METRO_BUNDLER_PID
+          # Clean up Metro bundler process
+          kill $METRO_BUNDLER_PID || true
 
           exit $DETOX_EXIT_CODE
 
