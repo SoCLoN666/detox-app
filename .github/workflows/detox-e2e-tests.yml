@@ -468,8 +468,8 @@ jobs:
       # Run Detox Tests
       - name: Run Detox Tests
         run: |
-          yarn start &  # Start the Metro bundler in the background
-          METRO_BUNDLER_PID=$!  # Store Metro process ID
+          METRO_NO_LOCKFILE=true yarn start &  # Start Metro without lockfile
+          METRO_BUNDLER_PID=$!
 
           # Run Detox E2E tests
           npx detox test --maxWorkers 3 --configuration ios.sim.release --headless
