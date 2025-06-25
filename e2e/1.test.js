@@ -1,4 +1,3 @@
-const { Assert } = require('./src/helpers/asserts');
 import { AllPages } from "./src/pages/all-pages";
 
 describe("test", () => {
@@ -17,7 +16,7 @@ describe("test", () => {
 
     await Page.Explore.toggleFileBasedRouting() // open
 
-    await Assert.toBeVisible(Page.Explore.locators.learnMore)
+    // await Assert.toBeVisible(Page.Explore.locators.learnMore) // assert class
 
     await expect(Page.Explore.locators.learnMore).toBeVisible()
     await Page.Explore.toggleFileBasedRouting() // close
