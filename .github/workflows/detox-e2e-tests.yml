@@ -468,6 +468,10 @@ jobs:
       # Run Detox Tests
       - name: Run Detox Tests
         run: |
+          echo "🧼 Cleaning up Metro cache and lockfiles"
+          rm -rf node_modules/.cache/metro
+          rm -rf /tmp/metro-*
+          rm -rf $HOME/.metro-cache
           export METRO_NO_LOCKFILE=true  # <- this is key
 
           yarn start &  # Metro now starts with proper env
@@ -477,7 +481,7 @@ jobs:
           sleep 10
 
           # Run Detox E2E tests
-          npx detox test --maxWorkers 3 --configuration ios.sim.release --headless
+          npx detox test --maxWorkers 1 --configuration ios.sim.release --headless
 
           DETOX_EXIT_CODE=$?  # Capture the Detox exit code
 
