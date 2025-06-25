@@ -1,4 +1,4 @@
-import { Assert } from "./src/helpers/asserts";
+const { Assert } = require('./src/helpers/asserts');
 import { AllPages } from "./src/pages/all-pages";
 
 describe("test", () => {
